@@ -21,23 +21,30 @@ enum MOVEMENT{
 //set width and hight of screen
 const int iScreenWidth = 672;
 const int iScreenHeight = 780;
+const int NUM_ALIENS = 18;
+
 
 //set space invaders font
 const char* font = "./fonts/invaders.fnt";
 
 //global variables
 unsigned int iArcadeMarquee;
+bool alienswitch = false;
 
 Cannon player;
-Enemy Aliens[18];
+Enemy Aliens[NUM_ALIENS];
+Bullet bullet;
 
 //**********FUNCTIONS**************
+bool CheckAllDead();
 // draw menu to screen
 void UpdateMainMenu();
 //player movements
-void UpdateGameState();
+void UpdateGameState(int &a_changeDir);
 //draw aliens to screen
 void CreateEnemies();
+bool CheckCollision(float x1, float y1, float x2, float y2, float distance);
+
 //**********************************
 
 int main( int argc, char* argv[] )
@@ -51,15 +58,17 @@ int main( int argc, char* argv[] )
 	//set player's cannon and movement
 	player.SetPosition(iScreenWidth * .5f, iScreenHeight * .1f);
 	player.SetSize(64.f, 32.f);
-	player.SetMovementKeys('A', 'D');
+	player.SetMovementKeys(GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
 	player.SetSpriteID(CreateSprite("./images/cannon.png", player.GetWidth(), player.GetHeight(), true));
 	player.SetMoveExtremes(32.f, 575.f);
 	MoveSprite(player.GetSpriteID(), player.GetX(), player.GetY());
+	
 
 	//set enemy display and movements
 	CreateEnemies();
 	int fEnemyX = iScreenWidth * .5f;
 	int fEnemyY = iScreenHeight * .8f;
+	int changeDir = 1;
 
 	//set marque
 	iArcadeMarquee = CreateSprite("./images/Space-Invaders-Marquee.png", iScreenWidth, iScreenHeight, true);
@@ -98,11 +107,16 @@ int main( int argc, char* argv[] )
 
 		case eGAMEPLAY:
 			player.Move(fDeltaT, 200);
-			UpdateGameState();
+			UpdateGameState(changeDir);
+			if (IsKeyDown(GLFW_KEY_ESCAPE))
+				eCurrentState = eEND;
+			
+			if (CheckAllDead())
+				eCurrentState = eEND;
 			break;
 
 		case eEND:
-			FrameworkUpdate() == true;
+			return 0;
 			break;
 
 		default:
@@ -128,8 +142,10 @@ void UpdateMainMenu(){
 	DrawString("Credits", iScreenWidth * 0.41f, iScreenHeight * 0.4f);
 }
 
-void UpdateGameState(){
+void UpdateGameState(int &a_changeDir){
 	float fDeltaT = GetDeltaTime();
+
+	
 	//draw cannon to screen
 	DrawSprite(player.GetSpriteID());
 	MoveSprite(player.GetSpriteID(), player.GetX(), player.GetY());
@@ -141,41 +157,62 @@ void UpdateGameState(){
 	DrawString("CREDIT 00", iScreenWidth *.7f, iScreenHeight * .05f);
 	DrawString("Lives", iScreenWidth *.075f, iScreenHeight * .05f);
 	DrawLine(32.f, 45.f, 640.f, 45.f, SColour(0x00, 0xFC, 0x00, 0xFF));
+	bullet.textureID = CreateSprite("./images/bullet.png", 4, 12, true);
 
-	//draw aliens to screen
-	for (int i = 0; i < 18; i++)
+	//check switch direction
+	for (int i = 0; i < NUM_ALIENS; i++)
 	{
-		DrawSprite(Aliens[i].spriteId);
-		Aliens[i].Move(fDeltaT, 1);
-		if (Aliens[i].x <= Aliens[i].min + Aliens[i].width * .5f)
-		{
-			for (int a = 0; a < 6; a++)
-			{
-				Aliens[i + a].y = Aliens[i].y;
-				DrawSprite(Aliens[i + a].spriteId);
-				Aliens[i + a].direction = Aliens[i].direction;
-			}
-			i += 6;
+		if (Aliens[i].x > iScreenWidth * .9 || Aliens[i].x < iScreenWidth * 0.1 && !alienswitch && Aliens[i].isActive){
+			alienswitch = true;
+			i = NUM_ALIENS;
 		}
-		Aliens[i].SetMoveExtremes(32.f, 625.f);
-		
-		if (Aliens[i].x >= Aliens[i].max )
+	} 
+
+	//moving shit
+	for (int i = 0; i < NUM_ALIENS; i++)
+	{
+		if (alienswitch)
 		{
-			for (int a = 0; a < 6; a++)
-			{ 
-				Aliens[i - a].y = Aliens[i].y;
-				DrawSprite(Aliens[i - a].spriteId);
-				Aliens[i - a].direction = Aliens[i].direction;
+			Aliens[i].direction *= -1;
+			Aliens[i].y -= 10;
+
+		}		
+		Aliens[i].Move(Aliens[i].speed, Aliens[i].direction, fDeltaT);
+		Aliens[i].Draw();
+	}
+	alienswitch = false;
+	
+	//bullet shit
+	player.Shoot(bullet.textureID);
+	for (int i = 0; i < MAX_BULLETS; i++)
+	{
+		player.bullets[i].Update(fDeltaT);
+		player.bullets[i].Draw();
+	}
+
+	//collision
+	for (int i = 0; i < MAX_BULLETS; i++)
+	{
+		if (player.bullets[i].isActive)
+		{
+			for (int j = 0; j < NUM_ALIENS; j++)
+			{
+				if (CheckCollision(player.bullets[i].x, player.bullets[i].y, Aliens[j].x, Aliens[j].y, 20.0f) && Aliens[j].isActive)
+				{
+					Aliens[j].isActive = false;
+					player.bullets[i].isActive = false;
+				}
 			}
-			i += 6;
 		}
 	}
 }
+
+
 void CreateEnemies(){
 	float enemyX = iScreenWidth * .2f;
 	float enemyY = iScreenHeight * .7f;
 
-	for (int i = 0; i < 18; ++i)
+	for (int i = 0; i < NUM_ALIENS; ++i)
 	{
 		Aliens[i].SetMoveExtremes(32.f, 625.f);
 		Aliens[i].SetPosition(enemyX, enemyY);
@@ -187,4 +224,29 @@ void CreateEnemies(){
 			enemyY -= iScreenHeight * .08f;
 		}
 	}
+}
+
+bool CheckCollision(float x1, float y1, float x2, float y2, float distance)
+{
+	float d = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+
+	if (d < distance)
+		return true;
+	else
+		return false;
+}
+
+bool CheckAllDead()
+{
+	bool allDead = false;
+	for (int i = 0; i < NUM_ALIENS; i++)
+	{
+		if (!Aliens[i].isActive)
+			allDead = true;
+		else
+		{
+			return allDead = false;
+		}
+	}
+	return allDead;
 }

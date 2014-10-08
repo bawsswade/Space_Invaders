@@ -1,4 +1,10 @@
 #include "AIE.h"
+#include "Bullet.h"
+
+#ifndef _CANNON_H_
+#define _CANNON_H_
+
+const int MAX_BULLETS = 20;
 
 class Cannon{
 public:
@@ -16,6 +22,10 @@ public:
 
 	void Move(float a_TimeStep, float a_Speed);
 
+	Bullet bullets[MAX_BULLETS];
+	void Shoot(unsigned int textureID);
+	Bullet& GetInactiveBullet();
+
 	Cannon();
 	~Cannon();
 
@@ -29,4 +39,8 @@ private:
 	float height;
 	float x;
 	float y;
+	float currentReloadBulletTime = 0.0f;
+	float maxBulletReloadTime = 0.25f;
 };
+
+#endif

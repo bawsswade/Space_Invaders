@@ -58,6 +58,26 @@ typedef enum CameraDirection
 /**
 * @brief enumerator to define Key and Mouse button values
 **/
+
+#define 	GLFW_KEY_UNKNOWN   -1
+#define 	GLFW_KEY_SPACE   32
+#define 	GLFW_KEY_0   48
+#define 	GLFW_KEY_1   49
+#define 	GLFW_KEY_2   50
+#define 	GLFW_KEY_3   51
+#define 	GLFW_KEY_4   52
+#define 	GLFW_KEY_5   53
+#define 	GLFW_KEY_6   54
+#define 	GLFW_KEY_7   55
+#define 	GLFW_KEY_8   56
+#define 	GLFW_KEY_9   57
+#define 	GLFW_KEY_RIGHT   262
+#define 	GLFW_KEY_LEFT   263
+#define 	GLFW_KEY_DOWN   264
+#define 	GLFW_KEY_UP   265
+#define 	GLFW_KEY_ESCAPE   256
+
+
 typedef enum
 {
 	MOUSE_BUTTON_1 = 0,

@@ -70,3 +70,26 @@ Cannon::~Cannon()
 {
 
 }
+
+void Cannon::Shoot(unsigned int textureID)
+{
+	if (IsKeyDown(GLFW_KEY_SPACE) && currentReloadBulletTime > maxBulletReloadTime)
+	{
+			GetInactiveBullet().InitialiseBullet(x, y, 0, 400, textureID);
+			currentReloadBulletTime = .0f;
+	}
+	currentReloadBulletTime += GetDeltaTime();
+}
+
+Bullet& Cannon::GetInactiveBullet()
+{
+	for (int i = 0; i < MAX_BULLETS; i++)
+	{
+		if (!bullets[i].isActive)
+		{
+			return bullets[i];
+		}
+	}
+
+	return bullets[0];
+}
