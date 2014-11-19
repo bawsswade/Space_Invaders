@@ -1,13 +1,35 @@
 #ifndef _ENEMY_H_
 #define _ENEMY_H_
 
-class Enemy{
+#include "Entity.h"
+
+class Enemy: public Entity{
 public: 
 	
 	void SetMoveExtremes(unsigned int a_min, unsigned int a_max);
 	void SetPosition(float a_x, float a_y);
-	void Move(float speed, float a_Direction, float a_fDeltaTime);
+	void Move(float delta);
+
+	void SetSize(float width, float height);
+	//void SetPosition(float x, float y);
+	//******************************
+	void Update(float delta);
 	void Draw();
+
+	void SetSpriteID(unsigned int spriteID);
+	unsigned int GetSpriteID();
+
+	void SetWidth(float width);
+	void SetHeight(float height);
+
+	float GetWidth();
+	float GetHeight();
+
+	void SetX(float x);
+	void SetY(float y);
+
+	float GetX();
+	float GetY();
 
 	Enemy();
 	~Enemy();
@@ -18,6 +40,7 @@ public:
 		eDown
 	};
 
+	
 	const int iScreenWidth = 672;
 	const int iScreenHeight = 780;
 

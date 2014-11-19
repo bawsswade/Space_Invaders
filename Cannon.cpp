@@ -23,7 +23,7 @@ void Cannon :: SetMoveExtremes(unsigned int a_min, unsigned int a_max){
 
 void Cannon::SetSpriteID(unsigned int a_spriteID)
 {
-	a_spriteID = spriteId;
+	spriteId = a_spriteID;
 }
 
 unsigned int Cannon::GetSpriteID()
@@ -51,15 +51,15 @@ float Cannon::GetHeight()
 	return height;
 }
 
-void Cannon :: Move(float a_TimeStep, float a_Speed){
+void Cannon :: Move(float delta){
 
 	if (IsKeyDown(iMoveLeftKey)){
-		x -= a_TimeStep * a_Speed;
+		x -= delta * speed;
 		if (x < (min + width * .5f))
 			x = min + width * .5f;
 	}
 	if (IsKeyDown(iMoveRightKey)){
-		x += a_TimeStep * a_Speed;
+		x += delta * speed;
 		if (x >(max + width * .5f))
 			x = max + width * .5f;
 	}
@@ -71,25 +71,39 @@ Cannon::~Cannon()
 
 }
 
-void Cannon::Shoot(unsigned int textureID)
-{
-	if (IsKeyDown(GLFW_KEY_SPACE) && currentReloadBulletTime > maxBulletReloadTime)
-	{
-			GetInactiveBullet().InitialiseBullet(x, y, 0, 400, textureID);
-			currentReloadBulletTime = .0f;
-	}
-	currentReloadBulletTime += GetDeltaTime();
-}
-
 Bullet& Cannon::GetInactiveBullet()
 {
 	for (int i = 0; i < MAX_BULLETS; i++)
 	{
-		if (!bullets[i].isActive)
+		if (!bullets[i].GetActive())
 		{
 			return bullets[i];
 		}
 	}
 
-	return bullets[0];
+	return this->bullets[0];
+}
+
+void Cannon::Shoot(unsigned int textureID)
+{
+
+	if (IsKeyDown(GLFW_KEY_SPACE) && currentReloadBulletTime > maxBulletReloadTime)
+	{
+			GetInactiveBullet().InitialiseBullet(x, y, 0, 400, textureID);
+			currentReloadBulletTime = .0f;
+
+	}
+	currentReloadBulletTime += GetDeltaTime();
+}
+
+
+int Cannon::GetSpeed()
+{
+	return speed;
+}
+
+void Cannon::Draw()
+{
+	MoveSprite(spriteId, x, y);
+	DrawSprite(spriteId);
 }

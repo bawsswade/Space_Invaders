@@ -2,6 +2,7 @@
 #include <iostream>
 #include "Cannon.h"
 #include "Enemy.h"
+#include <vector>
 //#include "SpaceInvaders.h"
 
 using namespace std;
@@ -31,7 +32,12 @@ const char* font = "./fonts/invaders.fnt";
 unsigned int iArcadeMarquee;
 bool alienswitch = false;
 
-Cannon player;
+
+vector<Entity*> gameObjects;
+
+Cannon* player = new Cannon();
+
+//Cannon player;
 Enemy Aliens[NUM_ALIENS];
 Bullet bullet;
 
@@ -49,19 +55,19 @@ bool CheckCollision(float x1, float y1, float x2, float y2, float distance);
 
 int main( int argc, char* argv[] )
 {	
-
-
 	//initialize screen settings
 	Initialise(iScreenWidth, iScreenHeight, false, "Space Invaders");
 	SetBackgroundColour(SColour(0x00, 0x00, 0x00, 0xFF));
 
+	gameObjects.push_back(player);
+
 	//set player's cannon and movement
-	player.SetPosition(iScreenWidth * .5f, iScreenHeight * .1f);
-	player.SetSize(64.f, 32.f);
-	player.SetMovementKeys(GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
-	player.SetSpriteID(CreateSprite("./images/cannon.png", player.GetWidth(), player.GetHeight(), true));
-	player.SetMoveExtremes(32.f, 575.f);
-	MoveSprite(player.GetSpriteID(), player.GetX(), player.GetY());
+	player->SetPosition(iScreenWidth * .5f, iScreenHeight * .1f);
+	player->SetSize(64.f, 32.f);
+	player->SetMovementKeys(GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
+	player->SetSpriteID(CreateSprite("./images/cannon.png", player->GetWidth(), player->GetHeight(), true));
+	player->SetMoveExtremes(32.f, 575.f);
+	MoveSprite(player->GetSpriteID(), player->GetX(), player->GetY());
 	
 
 	//set enemy display and movements
@@ -79,6 +85,11 @@ int main( int argc, char* argv[] )
 	char score2[10] = "00000";
 	char highScore[10] = "0000";
 	char credits[10] = "99";
+
+	for (int i = 0; i < 20; i++){
+		player->bullets[i].InitialiseBullet(player->GetX(), player->GetY(), 0, 400, bullet.GetSpriteID());
+		player->bullets[i].SetActive(false);
+	}
 
 	//add font
 	AddFont(font);
@@ -106,7 +117,7 @@ int main( int argc, char* argv[] )
 			break;
 
 		case eGAMEPLAY:
-			player.Move(fDeltaT, 200);
+			player->Move(fDeltaT);
 			UpdateGameState(changeDir);
 			if (IsKeyDown(GLFW_KEY_ESCAPE))
 				eCurrentState = eEND;
@@ -127,7 +138,7 @@ int main( int argc, char* argv[] )
 
 	//**************************************
 
-	DestroySprite(player.GetSpriteID());
+	DestroySprite(player->GetSpriteID());
 	DestroySprite(iArcadeMarquee);
 
     Shutdown();
@@ -147,8 +158,7 @@ void UpdateGameState(int &a_changeDir){
 
 	
 	//draw cannon to screen
-	DrawSprite(player.GetSpriteID());
-	MoveSprite(player.GetSpriteID(), player.GetX(), player.GetY());
+	player->Draw();
 
 	//draw scores to screen
 	DrawString("SCORE < 1 >", iScreenWidth * 0.025f, iScreenHeight - 2);
@@ -157,7 +167,7 @@ void UpdateGameState(int &a_changeDir){
 	DrawString("CREDIT 00", iScreenWidth *.7f, iScreenHeight * .05f);
 	DrawString("Lives", iScreenWidth *.075f, iScreenHeight * .05f);
 	DrawLine(32.f, 45.f, 640.f, 45.f, SColour(0x00, 0xFC, 0x00, 0xFF));
-	bullet.textureID = CreateSprite("./images/bullet.png", 4, 12, true);
+	bullet.SetSpriteID(CreateSprite("./images/bullet.png", 4, 12, true));
 
 	//check switch direction
 	for (int i = 0; i < NUM_ALIENS; i++)
@@ -177,30 +187,31 @@ void UpdateGameState(int &a_changeDir){
 			Aliens[i].y -= 10;
 
 		}		
-		Aliens[i].Move(Aliens[i].speed, Aliens[i].direction, fDeltaT);
+		Aliens[i].Move(fDeltaT);
 		Aliens[i].Draw();
 	}
 	alienswitch = false;
 	
 	//bullet shit
-	player.Shoot(bullet.textureID);
+	player->Shoot(bullet.GetSpriteID());
 	for (int i = 0; i < MAX_BULLETS; i++)
 	{
-		player.bullets[i].Update(fDeltaT);
-		player.bullets[i].Draw();
+		player->bullets[i].Move(fDeltaT);
+		player->bullets[i].Draw();
+
 	}
 
 	//collision
 	for (int i = 0; i < MAX_BULLETS; i++)
 	{
-		if (player.bullets[i].isActive)
+		if (player->bullets[i].GetActive())
 		{
 			for (int j = 0; j < NUM_ALIENS; j++)
 			{
-				if (CheckCollision(player.bullets[i].x, player.bullets[i].y, Aliens[j].x, Aliens[j].y, 20.0f) && Aliens[j].isActive)
+				if (CheckCollision(player->bullets[i].GetX(), player->bullets[i].GetY(), Aliens[j].x, Aliens[j].y, 20.0f) && Aliens[j].isActive)
 				{
 					Aliens[j].isActive = false;
-					player.bullets[i].isActive = false;
+					player->bullets[i].SetActive(false);			//it just werks
 				}
 			}
 		}
@@ -214,8 +225,22 @@ void CreateEnemies(){
 
 	for (int i = 0; i < NUM_ALIENS; ++i)
 	{
+		/*Enemy* enemy;
+
+		enemy->SetSpriteID(CreateSprite("./images/invaders/invaders_1_00.png", 40, 32, true));
+		if (enemyX > iScreenWidth * .8f){
+			enemyX = iScreenWidth * .2f;
+			enemyY -= iScreenHeight * .08f;
+		}
+		enemy->SetX(enemyX);
+		enemy->SetY(enemyY);
+		enemyX += .12f* iScreenWidth;
+
+		gameObjects.push_back(enemy);*/
+
 		Aliens[i].SetMoveExtremes(32.f, 625.f);
-		Aliens[i].SetPosition(enemyX, enemyY);
+		Aliens[i].SetX(enemyX);
+		Aliens[i].SetY(enemyY);
 		Aliens[i].spriteId = CreateSprite("./images/invaders/invaders_1_00.png", 40, 32, true);
 		MoveSprite(Aliens[i].spriteId, enemyX, enemyY);
 		enemyX += .12f* iScreenWidth;

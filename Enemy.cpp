@@ -17,9 +17,9 @@ void Enemy::SetPosition(float a_x, float a_y){
 	x = a_x;
 	y = a_y;
 }
-void Enemy::Move(float a_speed, float a_Direction, float a_fDeltaTime){
+void Enemy::Move(float delta){
 	if (isActive){
-		x += a_speed * a_Direction * a_fDeltaTime;
+		x += speed * direction * delta;
 		MoveSprite(spriteId, x, y);
 	}
 }
@@ -30,6 +30,73 @@ void Enemy::Draw()
 }
 
 Enemy::~Enemy()
+{
+
+}
+
+void Enemy::SetSize(float width, float height)
+{
+	this->width = width;
+	this->height = height;
+}
+
+/*void Enemy::SetPosition(float x, float y)
+{
+	this->x = x;
+	this->y = y;
+}*/
+
+void Enemy::SetSpriteID(unsigned int spriteID)
+{
+	this->spriteId = spriteID;
+}
+
+unsigned int Enemy::GetSpriteID()
+{
+	return spriteId;
+}
+
+void Enemy::SetWidth(float width)
+{
+	this->width = width;
+}
+
+void Enemy::SetHeight(float height)
+{
+	this->height = height;
+}
+
+float Enemy::GetWidth()
+{
+	return width;
+}
+
+float Enemy::GetHeight()
+{
+	return height;
+}
+
+void Enemy::SetX(float x)
+{
+	this->x = x;
+}
+
+void Enemy::SetY(float y)
+{
+	this->y = y;
+}
+
+float Enemy::GetX()
+{
+	return x;
+}
+
+float Enemy::GetY()
+{
+	return y;
+}
+
+void Enemy::Update(float delta)
 {
 
 }

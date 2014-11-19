@@ -1,12 +1,13 @@
 #include "AIE.h"
 #include "Bullet.h"
+#include "Entity.h"
 
 #ifndef _CANNON_H_
 #define _CANNON_H_
 
 const int MAX_BULLETS = 20;
 
-class Cannon{
+class Cannon: public Entity{
 public:
 	void SetSize(float a_width, float a_height);
 	void SetPosition(float a_x, float a_y);
@@ -20,11 +21,15 @@ public:
 	float GetWidth();
 	float GetHeight();
 
-	void Move(float a_TimeStep, float a_Speed);
+	virtual void Move(float delta);
+	virtual void Draw();
 
 	Bullet bullets[MAX_BULLETS];
 	void Shoot(unsigned int textureID);
 	Bullet& GetInactiveBullet();
+
+	int GetSpeed();
+	
 
 	Cannon();
 	~Cannon();
@@ -41,6 +46,7 @@ private:
 	float y;
 	float currentReloadBulletTime = 0.0f;
 	float maxBulletReloadTime = 0.25f;
+	int speed = 200;
 };
 
 #endif
